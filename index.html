@@ -1,0 +1,537 @@
+<!DOCTYPE html>
+<html lang="en" class="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>TradeGlow Studio – Auto Monthly Top Trades Generator</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    colors: {
+                        primary: '#00FF88', // Neon Green
+                        bgDark: '#0A0A0A',
+                        cardDark: '#141414',
+                        borderDark: '#262626'
+                    },
+                    fontFamily: {
+                        sans: ['Montserrat', 'sans-serif'],
+                    },
+                }
+            }
+        }
+    </script>
+    <style>
+        body {
+            background-color: #0A0A0A;
+            color: #E5E7EB;
+            font-family: 'Montserrat', sans-serif;
+        }
+        .neon-glow {
+            text-shadow: 0 0 12px rgba(0, 255, 136, 0.4);
+        }
+        .canvas-container {
+            max-width: 100%;
+            max-height: 75vh;
+            overflow: auto;
+        }
+        #mainCanvas {
+            background-color: #1A1A1A;
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.7);
+            max-width: 100%;
+            height: auto;
+            display: block;
+            border-radius: 8px;
+        }
+        /* Custom scrollbar */
+        ::-webkit-scrollbar {
+            width: 6px;
+            height: 6px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #0A0A0A;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #333;
+            border-radius: 10px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: #444;
+        }
+        .cat-btn.active, .size-btn.active {
+            border-color: #00FF88 !important;
+            background-color: rgba(0, 255, 136, 0.05) !important;
+        }
+        .cat-btn.active span:first-child {
+            color: #00FF88 !important;
+        }
+    </style>
+</head>
+<body class="font-sans antialiased min-h-screen flex flex-col lg:flex-row">
+
+    <!-- Left Sidebar -->
+    <aside class="w-full lg:w-[400px] bg-cardDark border-r border-borderDark p-6 flex flex-col gap-6 shrink-0 overflow-y-auto max-h-screen">
+        <div class="flex items-center gap-3 mb-2">
+            <div class="w-10 h-10 bg-primary rounded-lg flex items-center justify-center shadow-lg shadow-primary/20">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-black" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6" />
+                </svg>
+            </div>
+            <div>
+                <h1 class="text-lg font-black tracking-tighter text-white leading-none">TRADEGLOW <span class="text-primary">STUDIO</span></h1>
+                <p class="text-[10px] text-gray-500 font-bold uppercase tracking-widest mt-1">Monthly Top Trades Generator</p>
+            </div>
+        </div>
+
+        <!-- Upload Section -->
+        <section>
+            <h2 class="text-[11px] font-black uppercase tracking-[0.2em] text-gray-500 mb-3 flex items-center gap-2">
+                <span class="w-4 h-[1px] bg-gray-800"></span> 1. DATA INPUT
+            </h2>
+            <div id="dropZone" class="border-2 border-dashed border-borderDark rounded-2xl p-6 text-center hover:border-primary transition-all cursor-pointer bg-bgDark/40 group relative overflow-hidden">
+                <input type="file" id="fileInput" class="hidden" accept=".xlsx, .csv">
+                <div class="relative z-10">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-10 w-10 mx-auto text-gray-600 mb-3 group-hover:text-primary group-hover:scale-110 transition-all duration-300" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" />
+                    </svg>
+                    <p class="text-xs font-bold text-gray-400 group-hover:text-white transition-colors">DROP EXCEL / CSV HERE</p>
+                    <p class="text-[10px] text-gray-600 mt-1 uppercase tracking-tight">Auto-detects columns & sorting</p>
+                </div>
+            </div>
+        </section>
+
+        <!-- Category Selector -->
+        <section>
+            <h2 class="text-[11px] font-black uppercase tracking-[0.2em] text-gray-500 mb-3 flex items-center gap-2">
+                <span class="w-4 h-[1px] bg-gray-800"></span> 2. CATEGORY
+            </h2>
+            <div class="grid grid-cols-2 gap-2" id="categoryGrid">
+                <button class="cat-btn active p-3 rounded-xl border border-borderDark bg-bgDark text-left hover:border-primary transition-all group" data-category="Hero Zero">
+                    <span class="block text-[10px] font-black text-gray-500 group-hover:text-primary mb-1 tracking-tighter">HERO-ZERO</span>
+                    <span class="text-[11px] font-bold text-gray-300 leading-tight">Index Trades<br>0 Days</span>
+                </button>
+                <button class="cat-btn p-3 rounded-xl border border-borderDark bg-bgDark text-left hover:border-primary transition-all group" data-category="Intraday">
+                    <span class="block text-[10px] font-black text-gray-500 group-hover:text-primary mb-1 tracking-tighter">INTRADAY</span>
+                    <span class="text-[11px] font-bold text-gray-300 leading-tight">Stock Trades<br>0 Days</span>
+                </button>
+                <button class="cat-btn p-3 rounded-xl border border-borderDark bg-bgDark text-left hover:border-primary transition-all group" data-category="BTST">
+                    <span class="block text-[10px] font-black text-gray-500 group-hover:text-primary mb-1 tracking-tighter">BTST</span>
+                    <span class="text-[11px] font-bold text-gray-300 leading-tight">Next Day<br>1 Day</span>
+                </button>
+                <button class="cat-btn p-3 rounded-xl border border-borderDark bg-bgDark text-left hover:border-primary transition-all group" data-category="Remaining">
+                    <span class="block text-[10px] font-black text-gray-500 group-hover:text-primary mb-1 tracking-tighter">REMAINING</span>
+                    <span class="text-[11px] font-bold text-gray-300 leading-tight">Options/Top<br>Everything Else</span>
+                </button>
+            </div>
+        </section>
+
+        <!-- Size Selector -->
+        <section>
+            <h2 class="text-[11px] font-black uppercase tracking-[0.2em] text-gray-500 mb-3 flex items-center gap-2">
+                <span class="w-4 h-[1px] bg-gray-800"></span> 3. DIMENSIONS
+            </h2>
+            <div class="grid grid-cols-2 gap-2" id="sizeGrid">
+                <button class="size-btn active p-3 rounded-xl border border-borderDark bg-bgDark text-center hover:border-primary transition-all group" data-size="1200x628">
+                    <span class="block text-[10px] font-black text-gray-500 group-hover:text-primary mb-1">FB/TWITTER</span>
+                    <span class="text-[11px] font-bold text-white">1200 x 628</span>
+                </button>
+                <button class="size-btn p-3 rounded-xl border border-borderDark bg-bgDark text-center hover:border-primary transition-all group" data-size="1080x1080">
+                    <span class="block text-[10px] font-black text-gray-500 group-hover:text-primary mb-1">SQUARE</span>
+                    <span class="text-[11px] font-bold text-white">1080 x 1080</span>
+                </button>
+                <button class="size-btn p-3 rounded-xl border border-borderDark bg-bgDark text-center hover:border-primary transition-all group" data-size="1080x1350">
+                    <span class="block text-[10px] font-black text-gray-500 group-hover:text-primary mb-1">PORTRAIT</span>
+                    <span class="text-[11px] font-bold text-white">1080 x 1350</span>
+                </button>
+                <button class="size-btn p-3 rounded-xl border border-borderDark bg-bgDark text-center hover:border-primary transition-all group" data-size="1080x1920">
+                    <span class="block text-[10px] font-black text-gray-500 group-hover:text-primary mb-1">STORY/REEL</span>
+                    <span class="text-[11px] font-bold text-white">1080 x 1920</span>
+                </button>
+            </div>
+        </section>
+
+        <!-- Action Buttons -->
+        <div class="mt-auto pt-6 space-y-3 border-t border-borderDark">
+            <button id="extractBtn" class="w-full bg-primary hover:bg-green-300 text-black font-black py-4 rounded-xl transition-all shadow-xl shadow-primary/10 flex items-center justify-center gap-2 text-sm uppercase tracking-wider">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M13 10V3L4 14h7v7l9-11h-7z" />
+                </svg>
+                Auto Extract Top 5
+            </button>
+            <button id="downloadBtn" class="w-full bg-white hover:bg-gray-200 text-black font-black py-4 rounded-xl transition-all flex items-center justify-center gap-2 text-sm uppercase tracking-wider">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
+                </svg>
+                Download PNG
+            </button>
+        </div>
+    </aside>
+
+    <!-- Main Content -->
+    <main class="flex-1 p-6 lg:p-10 flex flex-col gap-8 bg-bgDark overflow-y-auto">
+
+        <!-- Top Bar -->
+        <div class="flex flex-col md:flex-row md:items-end justify-between gap-6 pb-6 border-b border-borderDark">
+            <div class="flex-1 max-w-2xl">
+                <label class="block text-[10px] font-black text-gray-500 uppercase tracking-[0.3em] mb-2">Month Year Branding</label>
+                <div class="relative group">
+                    <input type="text" id="monthYearInput" value="MARCH 2026" class="bg-transparent text-4xl lg:text-5xl font-black text-white outline-none w-full border-b-2 border-transparent focus:border-primary transition-all placeholder-gray-800 uppercase" maxlength="20">
+                    <div class="absolute -bottom-1 left-0 w-0 h-0.5 bg-primary group-focus-within:w-full transition-all duration-500"></div>
+                </div>
+            </div>
+            <div id="statusToast" class="opacity-0 transition-opacity duration-300 px-6 py-3 bg-primary/10 border border-primary/30 text-primary rounded-xl text-xs font-black uppercase tracking-widest shadow-2xl shadow-primary/5">
+                Data Synchronized
+            </div>
+        </div>
+
+        <div class="flex flex-col xl:flex-row gap-10">
+            <!-- Data Grid Section -->
+            <div class="flex-1 flex flex-col gap-6 min-w-0">
+                <div class="bg-cardDark rounded-3xl border border-borderDark overflow-hidden shadow-2xl">
+                    <div class="p-5 border-b border-borderDark bg-bgDark/40 flex justify-between items-center">
+                        <div class="flex items-center gap-2">
+                            <span class="w-2 h-2 rounded-full bg-primary animate-pulse"></span>
+                            <h3 class="font-black text-[10px] tracking-[0.2em] text-gray-400 uppercase">Live Editor</h3>
+                        </div>
+                        <span class="text-[9px] font-black bg-white/5 px-2 py-1 rounded-md text-gray-500 uppercase">Sort by Returns %</span>
+                    </div>
+                    <div class="overflow-x-auto">
+                        <table class="w-full text-left border-collapse">
+                            <thead>
+                                <tr class="text-[10px] text-gray-500 uppercase tracking-widest border-b border-borderDark/50">
+                                    <th class="p-5 font-black">Trade Details</th>
+                                    <th class="p-5 font-black text-right">Returns %</th>
+                                    <th class="p-5 font-black text-right">Holding</th>
+                                </tr>
+                            </thead>
+                            <tbody id="tradeTableBody">
+                                <!-- JS populated -->
+                            </tbody>
+                        </table>
+                    </div>
+                    <div class="p-5 border-t border-borderDark bg-bgDark/20">
+                        <p class="text-[10px] text-gray-600 font-bold italic">
+                            * Edit any field above to update the canvas in real-time. Max 5 trades displayed.
+                        </p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Visual Preview Section -->
+            <div class="xl:w-[500px] 2xl:w-[600px] shrink-0">
+                <div class="sticky top-6 flex flex-col gap-4">
+                    <div class="flex items-center justify-between px-2">
+                        <h3 class="font-black text-[10px] tracking-[0.2em] text-gray-500 uppercase">Canvas Preview</h3>
+                        <div class="flex gap-1.5">
+                             <div class="w-2.5 h-2.5 rounded-full bg-gray-800"></div>
+                             <div class="w-2.5 h-2.5 rounded-full bg-gray-800"></div>
+                             <div class="w-2.5 h-2.5 rounded-full bg-gray-800"></div>
+                        </div>
+                    </div>
+                    <div class="canvas-container group relative">
+                        <div class="absolute inset-0 bg-primary/10 blur-3xl opacity-0 group-hover:opacity-20 transition-opacity duration-700 pointer-events-none"></div>
+                        <canvas id="mainCanvas" class="relative z-10"></canvas>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+    </main>
+
+    <script>
+        const templates = {
+            "Hero Zero": {
+                "1200x628": "https://concerned-green-tg5udyjc7d.edgeone.app/HZ%20-2.png",
+                "1080x1080": "https://concerned-green-tg5udyjc7d.edgeone.app/HZ%204.png",
+                "1080x1350": "https://concerned-green-tg5udyjc7d.edgeone.app/HZ-1.png",
+                "1080x1920": "https://concerned-green-tg5udyjc7d.edgeone.app/HZ-1,%209-16.png"
+            },
+            "Intraday": {
+                "1200x628": "https://concerned-green-tg5udyjc7d.edgeone.app/OP-1-INTRA.png",
+                "1080x1080": "https://concerned-green-tg5udyjc7d.edgeone.app/OP-2-INTRA.png",
+                "1080x1350": "https://concerned-green-tg5udyjc7d.edgeone.app/OP-3-INTRA.png",
+                "1080x1920": "https://concerned-green-tg5udyjc7d.edgeone.app/HZ-1,%209-16-1.png"
+            },
+            "BTST": {
+                "1200x628": "https://concerned-green-tg5udyjc7d.edgeone.app/OP-1-BTST.png",
+                "1080x1080": "https://concerned-green-tg5udyjc7d.edgeone.app/OP-2-BTST.png",
+                "1080x1350": "https://concerned-green-tg5udyjc7d.edgeone.app/OP-2-BTST-1.png",
+                "1080x1920": "https://concerned-green-tg5udyjc7d.edgeone.app/HZ-1,%209-16-2.png"
+            },
+            "Remaining": {
+                "1200x628": "https://concerned-green-tg5udyjc7d.edgeone.app/OP-1-ALL.png",
+                "1080x1080": "https://concerned-green-tg5udyjc7d.edgeone.app/OP-2-ALL.png",
+                "1080x1350": "https://concerned-green-tg5udyjc7d.edgeone.app/OP-3-ALL.png",
+                "1080x1920": "https://concerned-green-tg5udyjc7d.edgeone.app/HZ-1,%209-16-3.png"
+            }
+        };
+
+        const canvasConfigs = {
+            "1200x628": {
+                width: 1200, height: 628,
+                titlePos: { x: 600, y: 180, fontSize: 75 },
+                tableTop: 380, rowHeight: 48,
+                colX: { name: 180, returns: 660, duration: 960 },
+                fontSize: { table: 22, header: 18 }
+            },
+            "1080x1080": {
+                width: 1080, height: 1080,
+                titlePos: { x: 540, y: 285, fontSize: 85 },
+                tableTop: 585, rowHeight: 80,
+                colX: { name: 245, returns: 640, duration: 880 },
+                fontSize: { table: 32, header: 24 }
+            },
+            "1080x1350": {
+                width: 1080, height: 1350,
+                titlePos: { x: 540, y: 330, fontSize: 95 },
+                tableTop: 720, rowHeight: 95,
+                colX: { name: 245, returns: 640, duration: 880 },
+                fontSize: { table: 36, header: 28 }
+            },
+            "1080x1920": {
+                width: 1080, height: 1920,
+                titlePos: { x: 540, y: 485, fontSize: 105 },
+                tableTop: 1020, rowHeight: 125,
+                colX: { name: 245, returns: 640, duration: 880 },
+                fontSize: { table: 40, header: 32 }
+            }
+        };
+
+        let rawTradeData = [];
+        let currentCategory = "Hero Zero";
+        let currentSize = "1080x1080";
+
+        document.addEventListener('DOMContentLoaded', () => {
+            const tableBody = document.getElementById('tradeTableBody');
+
+            // Initialize empty table
+            for (let i = 0; i < 5; i++) {
+                const tr = document.createElement('tr');
+                tr.className = "border-b border-borderDark/30 hover:bg-white/[0.02] transition-colors group";
+                tr.innerHTML = `
+                    <td class="p-4 w-1/2"><input type="text" class="w-full bg-transparent border-none outline-none text-[13px] font-bold text-white placeholder-gray-800" placeholder="BUY NIFTY MAR 22000 CE"></td>
+                    <td class="p-4 w-1/4 text-right"><input type="text" class="w-full bg-transparent border-none outline-none text-[14px] font-black text-primary placeholder-gray-800 text-right" placeholder="+0.00%"></td>
+                    <td class="p-4 w-1/4 text-right"><input type="text" class="w-full bg-transparent border-none outline-none text-[11px] font-bold text-gray-500 placeholder-gray-800 text-right" placeholder="Intraday"></td>
+                `;
+                tableBody.appendChild(tr);
+            }
+
+            // Category buttons
+            const catBtns = document.querySelectorAll('.cat-btn');
+            catBtns.forEach(btn => {
+                btn.addEventListener('click', () => {
+                    catBtns.forEach(b => b.classList.remove('active'));
+                    btn.classList.add('active');
+                    currentCategory = btn.getAttribute('data-category');
+                    if (rawTradeData.length > 0) extractTrades();
+                    else renderCanvas();
+                });
+            });
+
+            // Size buttons
+            const sizeBtns = document.querySelectorAll('.size-btn');
+            sizeBtns.forEach(btn => {
+                btn.addEventListener('click', () => {
+                    sizeBtns.forEach(b => b.classList.remove('active'));
+                    btn.classList.add('active');
+                    currentSize = btn.getAttribute('data-size');
+                    renderCanvas();
+                });
+            });
+
+            // File Upload
+            const dropZone = document.getElementById('dropZone');
+            const fileInput = document.getElementById('fileInput');
+
+            dropZone.onclick = () => fileInput.click();
+            dropZone.ondragover = (e) => { e.preventDefault(); dropZone.classList.add('border-primary', 'bg-primary/5'); };
+            dropZone.ondragleave = () => { dropZone.classList.remove('border-primary', 'bg-primary/5'); };
+            dropZone.ondrop = (e) => {
+                e.preventDefault();
+                dropZone.classList.remove('border-primary', 'bg-primary/5');
+                if (e.dataTransfer.files.length) handleFileUpload(e.dataTransfer.files[0]);
+            };
+            fileInput.onchange = (e) => { if (e.target.files.length) handleFileUpload(e.target.files[0]); };
+
+            function handleFileUpload(file) {
+                const reader = new FileReader();
+                reader.onload = (e) => {
+                    try {
+                        const data = new Uint8Array(e.target.result);
+                        const workbook = XLSX.read(data, { type: 'array' });
+                        rawTradeData = XLSX.utils.sheet_to_json(workbook.Sheets[workbook.SheetNames[0]]);
+                        showToast(`PARSED ${rawTradeData.length} TRADES`);
+                        extractTrades();
+                    } catch (err) {
+                        showToast("FILE ERROR", true);
+                    }
+                };
+                reader.readAsArrayBuffer(file);
+            }
+
+            function extractTrades() {
+                if (!rawTradeData.length) return;
+
+                const cols = Object.keys(rawTradeData[0]);
+                const find = (ks) => cols.find(c => ks.some(k => c.toLowerCase().includes(k)));
+
+                const tCol = find(['trade', 'symbol', 'instrument', 'script']);
+                const rCol = find(['return', 'p&l', 'roi', 'profit']);
+                const dCol = find(['duration', 'hold', 'day', 'period']);
+
+                if (!tCol || !rCol || !dCol) {
+                    showToast("MAPPING ERROR", true);
+                    return;
+                }
+
+                const processed = rawTradeData.map(row => {
+                    const name = String(row[tCol] || "");
+                    const ret = parseFloat(String(row[rCol]).replace(/[+%]/g, '')) || 0;
+                    const dur = parseInt(row[dCol]) || 0;
+                    const isIndex = /\b(nifty|banknifty|sensex)\b/i.test(name);
+
+                    let cat = "Remaining";
+                    if (dur === 0) cat = isIndex ? "Hero Zero" : "Intraday";
+                    else if (dur === 1 && !isIndex) cat = "BTST";
+
+                    return { name: cleanName(name), returns: ret, duration: dur, category: cat };
+                });
+
+                const filtered = processed.filter(t => t.category === currentCategory)
+                    .sort((a, b) => b.returns - a.returns)
+                    .slice(0, 5);
+
+                const rows = document.querySelectorAll('#tradeTableBody tr');
+                rows.forEach((tr, i) => {
+                    const inputs = tr.querySelectorAll('input');
+                    if (filtered[i]) {
+                        inputs[0].value = filtered[i].name;
+                        inputs[1].value = (filtered[i].returns >= 0 ? '+' : '') + filtered[i].returns.toFixed(2) + '%';
+                        inputs[2].value = filtered[i].duration === 0 ? "Intraday" : (filtered[i].duration === 1 ? "BTST" : `${filtered[i].duration} Days`);
+                    } else {
+                        inputs.forEach(inp => inp.value = "");
+                    }
+                });
+                renderCanvas();
+            }
+
+            function cleanName(name) {
+                let s = name.toUpperCase().replace(/\s+/g, ' ');
+                const months = ['JAN', 'FEB', 'MAR', 'APR', 'MAY', 'JUN', 'JUL', 'AUG', 'SEP', 'OCT', 'NOV', 'DEC'];
+                months.forEach(m => {
+                    // Match day numbers (1-31) with optional suffixes
+                    // Before month: "28th MAR", "28 MAR"
+                    const dayBefore = new RegExp(`\\b\\d{1,2}(ST|ND|RD|TH)?\\s+${m}\\b`, 'g');
+                    s = s.replace(dayBefore, m);
+
+                    // After month: "MAR 28th", "MAR 28"
+                    const dayAfter = new RegExp(`\\b${m}\\s+\\d{1,2}(ST|ND|RD|TH)?\\b`, 'g');
+                    s = s.replace(dayAfter, m);
+
+                    // Match years: "MAR 2024", "2024 MAR"
+                    const yearBefore = new RegExp(`\\b\\d{4}\\s+${m}\\b`, 'g');
+                    const yearAfter = new RegExp(`\\b${m}\\s+\\d{4}\\b`, 'g');
+                    s = s.replace(yearBefore, m).replace(yearAfter, m);
+                });
+                return s.trim();
+            }
+
+            function renderCanvas() {
+                const canvas = document.getElementById('mainCanvas');
+                const ctx = canvas.getContext('2d');
+                const conf = canvasConfigs[currentSize];
+                const url = templates[currentCategory][currentSize];
+                const title = document.getElementById('monthYearInput').value.toUpperCase();
+
+                canvas.width = conf.width;
+                canvas.height = conf.height;
+
+                const img = new Image();
+                img.src = url;
+                img.onload = () => {
+                    ctx.drawImage(img, 0, 0, conf.width, conf.height);
+
+                    // Title
+                    ctx.textBaseline = "middle";
+                    ctx.textAlign = "center";
+                    ctx.font = `900 ${conf.titlePos.fontSize}px Montserrat`;
+
+                    // High Contrast Shadow for Title
+                    ctx.shadowColor = "rgba(0,0,0,0.9)";
+                    ctx.shadowBlur = 20;
+                    ctx.shadowOffsetX = 4;
+                    ctx.shadowOffsetY = 4;
+                    ctx.fillStyle = "white";
+                    ctx.fillText(title, conf.titlePos.x, conf.titlePos.y);
+
+                    // Reset shadow for table
+                    ctx.shadowBlur = 0;
+                    ctx.shadowOffsetX = 0;
+                    ctx.shadowOffsetY = 0;
+
+                    // Trades
+                    const trades = [];
+                    document.querySelectorAll('#tradeTableBody tr').forEach(tr => {
+                        const ins = tr.querySelectorAll('input');
+                        if (ins[0].value) trades.push({ n: ins[0].value, r: ins[1].value, d: ins[2].value });
+                    });
+
+                    trades.slice(0, 5).forEach((t, i) => {
+                        const y = conf.tableTop + (i * conf.rowHeight);
+
+                        // Text Shadow for Readability
+                        ctx.shadowColor = "rgba(0,0,0,0.5)";
+                        ctx.shadowBlur = 8;
+
+                        // Name
+                        ctx.textAlign = "left";
+                        ctx.fillStyle = "white";
+                        ctx.font = `700 ${conf.fontSize.table}px Montserrat`;
+                        ctx.fillText(t.n, conf.colX.name, y);
+
+                        // Returns
+                        ctx.textAlign = "center";
+                        ctx.fillStyle = "#00FF88";
+                        ctx.font = `800 ${conf.fontSize.table}px Montserrat`;
+                        ctx.fillText(t.r, conf.colX.returns, y);
+
+                        // Duration
+                        ctx.textAlign = "center";
+                        ctx.fillStyle = "white";
+                        ctx.font = `600 ${conf.fontSize.table - 4}px Montserrat`;
+                        ctx.fillText(t.d.toUpperCase(), conf.colX.duration, y);
+                    });
+
+                    showToast("CANVAS UPDATED");
+                };
+            }
+
+            function showToast(m, err = false) {
+                const t = document.getElementById('statusToast');
+                t.textContent = m;
+                t.classList.remove('opacity-0', 'border-primary/30', 'text-primary', 'border-red-500/30', 'text-red-500');
+                t.classList.add('opacity-100', err ? 'border-red-500/30' : 'border-primary/30', err ? 'text-red-500' : 'text-primary');
+                setTimeout(() => t.classList.add('opacity-0'), 2000);
+            }
+
+            document.getElementById('extractBtn').onclick = extractTrades;
+            document.getElementById('monthYearInput').oninput = renderCanvas;
+            document.getElementById('tradeTableBody').oninput = renderCanvas;
+            document.getElementById('downloadBtn').onclick = () => {
+                const link = document.createElement('a');
+                link.download = `${currentCategory}_${currentSize}.png`;
+                link.href = document.getElementById('mainCanvas').toDataURL();
+                link.click();
+            };
+
+            // Font loading
+            if (document.fonts) document.fonts.ready.then(renderCanvas);
+            else setTimeout(renderCanvas, 1000);
+        });
+    </script>
+</body>
+</html>
