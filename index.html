@@ -52,7 +52,7 @@
         </div>
 
         <section>
-            <h2 class="text-[11px] font-black uppercase tracking-[0.2em] text-gray-500 mb-3 flex items-center gap-2 uppercase">
+            <h2 class="text-[11px] font-black uppercase tracking-[0.2em] text-gray-500 mb-3 flex items-center gap-2">
                 <span class="w-4 h-[1px] bg-gray-800"></span> 1. DATA INPUT
             </h2>
             <div id="dropZone" class="border-2 border-dashed border-borderDark rounded-2xl p-6 text-center hover:border-primary transition-all cursor-pointer bg-bgDark/40 group relative">
@@ -67,7 +67,7 @@
         </section>
 
         <section>
-            <h2 class="text-[11px] font-black uppercase tracking-[0.2em] text-gray-500 mb-3 flex items-center gap-2 uppercase">
+            <h2 class="text-[11px] font-black uppercase tracking-[0.2em] text-gray-500 mb-3 flex items-center gap-2">
                 <span class="w-4 h-[1px] bg-gray-800"></span> 2. CATEGORY
             </h2>
             <div class="grid grid-cols-2 gap-2" id="categoryGrid">
@@ -85,31 +85,31 @@
                 </button>
                 <button class="cat-btn p-3 rounded-xl border border-borderDark bg-bgDark text-left hover:border-primary transition-all group" data-category="Remaining">
                     <span class="block text-[10px] font-black text-gray-500 mb-1 tracking-tighter uppercase">Remaining</span>
-                    <span class="text-[11px] font-bold text-gray-300 leading-tight">All Other<br>Trades</span>
+                    <span class="text-[11px] font-bold text-gray-300 leading-tight">Options/Top<br>Everything Else</span>
                 </button>
             </div>
         </section>
 
         <section>
-            <h2 class="text-[11px] font-black uppercase tracking-[0.2em] text-gray-500 mb-3 flex items-center gap-2 uppercase">
+            <h2 class="text-[11px] font-black uppercase tracking-[0.2em] text-gray-500 mb-3 flex items-center gap-2">
                 <span class="w-4 h-[1px] bg-gray-800"></span> 3. DIMENSIONS
             </h2>
             <div class="grid grid-cols-2 gap-2" id="sizeGrid">
                 <button class="size-btn active p-3 rounded-xl border border-borderDark bg-bgDark text-center hover:border-primary transition-all group" data-size="1080x1080">
                     <span class="block text-[10px] font-black text-gray-500 mb-1 uppercase text-[8px]">Square (1:1)</span>
-                    <span class="text-[11px] font-bold text-white leading-none">1080 x 1080</span>
+                    <span class="text-[11px] font-bold text-white">1080 x 1080</span>
                 </button>
                 <button class="size-btn p-3 rounded-xl border border-borderDark bg-bgDark text-center hover:border-primary transition-all group" data-size="1080x1350">
                     <span class="block text-[10px] font-black text-gray-500 mb-1 uppercase text-[8px]">Portrait (4:5)</span>
-                    <span class="text-[11px] font-bold text-white leading-none">1080 x 1350</span>
+                    <span class="text-[11px] font-bold text-white">1080 x 1350</span>
                 </button>
                 <button class="size-btn p-3 rounded-xl border border-borderDark bg-bgDark text-center hover:border-primary transition-all group" data-size="1200x628">
-                    <span class="block text-[10px] font-black text-gray-500 mb-1 uppercase text-[8px]">FB (1.91:1)</span>
-                    <span class="text-[11px] font-bold text-white leading-none">1200 x 628</span>
+                    <span class="block text-[10px] font-black text-gray-500 mb-1 uppercase text-[8px]">FB/TW (1.91:1)</span>
+                    <span class="text-[11px] font-bold text-white">1200 x 628</span>
                 </button>
                 <button class="size-btn p-3 rounded-xl border border-borderDark bg-bgDark text-center hover:border-primary transition-all group" data-size="1080x1920">
                     <span class="block text-[10px] font-black text-gray-500 mb-1 uppercase text-[8px]">Story (9:16)</span>
-                    <span class="text-[11px] font-bold text-white leading-none">1080 x 1920</span>
+                    <span class="text-[11px] font-bold text-white">1080 x 1920</span>
                 </button>
             </div>
         </section>
@@ -133,8 +133,8 @@
                         <input type="range" id="xPosSlider" min="0" max="100" value="50" class="w-full accent-primary">
                     </div>
                     <div>
-                        <label class="flex justify-between text-[8px] font-black text-gray-600 uppercase mb-1">Y POS <span id="yPosVal" class="text-primary">26%</span></label>
-                        <input type="range" id="yPosSlider" min="0" max="100" value="26" class="w-full accent-primary">
+                        <label class="flex justify-between text-[8px] font-black text-gray-600 uppercase mb-1">Y POS <span id="yPosVal" class="text-primary">22%</span></label>
+                        <input type="range" id="yPosSlider" min="0" max="100" value="22" class="w-full accent-primary">
                     </div>
                 </div>
                 <div class="grid grid-cols-2 gap-3">
@@ -215,10 +215,10 @@
         };
 
         const canvasConfigs = {
-            "1200x628": { width: 1200, height: 628, tableTop: 360, rowHeight: 48, colX: { name: 180, returns: 660, duration: 960 }, fontS: { table: 22 } },
-            "1080x1080": { width: 1080, height: 1080, tableTop: 540, rowHeight: 82, colX: { name: 240, returns: 630, duration: 880 }, fontS: { table: 32 } },
-            "1080x1350": { width: 1080, height: 1350, tableTop: 680, rowHeight: 102, colX: { name: 240, returns: 630, duration: 880 }, fontS: { table: 38 } },
-            "1080x1920": { width: 1080, height: 1920, tableTop: 960, rowHeight: 145, colX: { name: 240, returns: 630, duration: 880 }, fontS: { table: 42 } }
+            "1200x628": { width: 1200, height: 628, tableTop: 280, rowHeight: 55, colX: { name: 150, returns: 650, duration: 950 }, fontS: { table: 26 } },
+            "1080x1080": { width: 1080, height: 1080, tableTop: 420, rowHeight: 95, colX: { name: 180, returns: 600, duration: 880 }, fontS: { table: 36 } },
+            "1080x1350": { width: 1080, height: 1350, tableTop: 550, rowHeight: 120, colX: { name: 180, returns: 600, duration: 880 }, fontS: { table: 42 } },
+            "1080x1920": { width: 1080, height: 1920, tableTop: 780, rowHeight: 170, colX: { name: 180, returns: 600, duration: 880 }, fontS: { table: 48 } }
         };
 
         let rawTradeData = [];
@@ -340,8 +340,13 @@
                 canvas.width = conf.width; canvas.height = conf.height;
 
                 const img = new Image();
+                // We use anonymous crossOrigin to allow toDataURL() if CORS is configured on the server.
+                // If it fails, we catch it in img.onerror.
                 img.crossOrigin = "anonymous";
-                img.src = templates[currentSize];
+
+                const imageUrl = templates[currentSize];
+                img.src = imageUrl;
+
                 img.onload = () => {
                     ctx.drawImage(img, 0, 0, conf.width, conf.height);
 
